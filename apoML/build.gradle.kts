@@ -3,6 +3,12 @@ plugins {
     application
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -18,5 +24,9 @@ tasks.withType(Test::class) {
 }
 
 application {
-    mainClass.set("ifp.monads.app")
+    mainClass.set("apoml.AppKt")
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }

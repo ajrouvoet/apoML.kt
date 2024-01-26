@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 
 class ApoExpParseTest {
-    val program = exp() andSkip eos()
+    val program = apoML
 
     class TestInputProvider: InputProvider<Int> {
         private var next: Int = 0
@@ -156,5 +156,22 @@ class ApoExpParseTest {
             assertEquals(10, value.eval())
             assertEquals(Pair(10, 20), intervalAnalysis.eval(value))
         }
+    }
+
+    @Test
+    fun `let in`() = program.run {
+        expectParse("let x = 1 in x + 2") {
+            assertEquals(3, value.eval())
+        }
+
+        expectParse("let x = ? in x + 2") {
+            assertEquals(2, value.eval())
+        }
+
+        expectParse("let x = ?(0, 100) in x * 2")
+        expectParse("""
+            let x = ?(0, 100) in 
+            x * 2
+        """)
     }
 }
