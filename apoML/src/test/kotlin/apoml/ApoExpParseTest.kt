@@ -74,13 +74,29 @@ class ApoExpParseTest {
             assertEquals(42, value.eval())
         }
 
-        // right associative plus
+        // left associative plus
         expectParse("1 + 2 + 3") {
-            assertEquals(Plus(IntLit(1), Plus(IntLit(2), IntLit(3))), value)
+            assertEquals(Plus(Plus(IntLit(1), IntLit(2)), IntLit(3)), value)
             assertEquals(6, value.eval())
         }
 
         expectError("1 + 2 +")
+    }
+
+    @Test
+    fun `mult expressions`() = program.run {
+        expectParse("21 * 2") {
+            assertEquals(Mult(IntLit(21), IntLit(2)), value)
+            assertEquals(42, value.eval())
+        }
+
+        // left associative times
+        expectParse("1 * 2 * 3") {
+            assertEquals(Mult(Mult(IntLit(1), IntLit(2)), IntLit(3)), value)
+            assertEquals(6, value.eval())
+        }
+
+        expectError("1 * 2 *")
     }
 
     @Test
@@ -125,11 +141,22 @@ class ApoExpParseTest {
         // the initial semantics gives us an embedded DSL to construct the
         // abstract syntax.
         val exp: ApoExp = - ofInt(37) * (ofInt(3) + ofInt(2))
+
         assertEquals(
             Mult(UnaryMin(IntLit(37)), Plus(IntLit(3), IntLit(2))),
             exp
         )
+
         assertEquals(- 37 * (3 + 2), exp.eval())
+
+        // The semantics of let expressions is built into the interpreter.
+        // Effectively that means that the initial semantics performs inlining
+        // of let-bound variables.
+        program.run {
+            expectParse("let x = 1 in x + x") {
+                assertEquals(Plus(IntLit(1), IntLit(1)), eval(value))
+            }
+        }
     }
 
     @Test

@@ -79,5 +79,4 @@ object intervalAnalysis: Semantics<Interval> {
     override fun Interval.times(right: Interval): Interval =
         interval(this.first * right.first, this.second * right.second)
     override fun input(from: Int, to: Int): Interval = Pair(from, to)
-
 }

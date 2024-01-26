@@ -1,8 +1,11 @@
 package apoml
 
 import arrow.core.getOrElse
+import arrow.core.prependTo
 import parsec.Parsec
 import parsec.*
+
+fun <T> Pair<T, List<T>>.cons(): List<T> = first.prependTo(second)
 
 /**
  * Shortcut for Char-stream parsers
@@ -37,11 +40,11 @@ val id: P<String> = satisfy({ it.isLetterOrDigit() || it in "_'" }) {
     .plus()
     .map { (head, tail) -> tail.joinToString("", prefix = head.toString()) }
 
-fun plusExp(): P<ApoExp.Plus> =
+fun addition(): P<ApoExp> =
     ( rec { exp2() }
-      andSkip exactly('+').tok()
-      and rec { exp() }
-    ) .map { (l, r) -> ApoExp.Plus(l, r) }
+      and (keyword("+") skipAnd rec { exp2() }).plus()
+    )
+        .map { (fst, tail) -> ApoExp.addition(fst, tail.cons()) }
 
 fun letExp(): P<ApoExp.LetIn> = (
     pure<Char,_> { id: String, e1: ApoExp, e2: ApoExp -> ApoExp.LetIn(id, e1, e2) }
@@ -55,21 +58,20 @@ fun exp(): P<ApoExp> = choice(
     exp1()
 )
 
-/** Expressions with the least binding power */
 fun exp1(): P<ApoExp> = choice(
-    plusExp(),
+    addition(),
     exp2(),
 )
 
-fun multExp(): P<ApoExp.Mult> =
+fun multiplication(): P<ApoExp> =
     ( rec { exp3() }
-      andSkip exactly('*').tok()
-      and rec { exp2() }
-    ) .map { (l, r) -> ApoExp.Mult(l, r) }
+      and (keyword("*") skipAnd rec { exp3() }).plus()
+    )
+        .map { (head, tail) -> ApoExp.multiplication(head, tail.cons()) }
 
 /** Expressions at the binding power of multiplication */
 fun exp2(): P<ApoExp> = choice(
-    multExp(),
+    multiplication(),
     exp3()
 )
 

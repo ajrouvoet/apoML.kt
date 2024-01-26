@@ -48,6 +48,11 @@ fun main(args: Array<String>) {
         eval(ast)
     }
 
+    // inline the let expressions to get a simple symbolic expression
+    val inlined = initial.run {
+        eval(ast)
+    }
+
     println("-".repeat(80))
-    println("= $result")
+    println("${inlined.pretty()} = $result")
 }
