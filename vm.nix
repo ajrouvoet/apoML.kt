@@ -1,4 +1,5 @@
-{ config, lib, pkgs, ...}: {
+{ site }:
+{ config, lib, pkgs, ... }: {
     users.users = {
         # of course apoML is developed by Apo
         apo = {
@@ -27,6 +28,21 @@
         displayManager.defaultSession = "plasmawayland";
         displayManager.sddm = {
           enable = true;
+        };
+    };
+
+    networking.extraHosts = ''
+        127.0.0.1 apo.ml
+    '';
+
+    services.nginx = {
+        enable = true;
+        virtualHosts = {
+            "apo.ml" = {
+                locations."/" = {
+                    alias = "${site}/www/";
+                };
+            };
         };
     };
 

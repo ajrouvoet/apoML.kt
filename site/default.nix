@@ -18,6 +18,6 @@ stdenv.mkDerivation rec {
 
     installPhase = ''
         mkdir -p $out/www/
-        cp site/* $out/www/
+        cp -r site/* $out/www/
     '';
 }

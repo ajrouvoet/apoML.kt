@@ -9,7 +9,7 @@
   let
     system = "x86_64-linux";
 	pkgs = import nixpkgs { inherit system; };
-  in {
+  in rec {
 
     # for the development shell for the course
     packages.x86_64-linux.fpi     = import ./default.nix pkgs;
@@ -22,7 +22,7 @@
     nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
-            ./vm.nix
+            (import ./vm.nix { inherit site; })
         ];
     };
   };

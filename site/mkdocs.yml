@@ -1,5 +1,5 @@
 site_name: ApoML
-repo_url: https://github.com/ajrouvoet/apoML.kt
+# repo_url: https://github.com/ajrouvoet/apoML.kt
 
 nav:
   - Home: index.md
@@ -33,6 +33,10 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+  - offline
 
 extra_javascript:
   - js/mathjax.js
