@@ -1,7 +1,5 @@
 package apoml
 
-import kotlin.random.Random
-
 fun interface InputProvider<Value> {
     fun input(from: Int, to: Int): Value
 }
