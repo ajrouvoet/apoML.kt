@@ -1,5 +1,6 @@
 package apoml
 
+import arrow.core.getOrElse
 import parsec.Parsec
 import parsec.*
 
@@ -18,15 +19,15 @@ val nbws = oneOf(" \t").many()
  */
 fun <T> P<T>.tok() = nbws skipAnd this andSkip nbws
 
-val intLit: P<ApoExp.IntLit> =
+val int: P<Int> =
     digit.plus()
         .map { (head, tail) ->
-            val value = (listOf(head) + tail)
+            (listOf(head) + tail)
                 .joinToString("")
                 .toInt(10)
-
-            ApoExp.IntLit(value)
         }
+
+val intLit: P<ApoExp.IntLit> = int.map { ApoExp.IntLit(it) }
 
 fun plusExp(): P<ApoExp.Plus> =
     ( rec { exp2() }
@@ -63,9 +64,44 @@ val parenthesized: P<ApoExp> =
       andSkip exactly(')').tok()
     )
 
+private enum class RangeDelim {
+    Open, Closed
+}
+
+private val lRangeDelimiter = choice(
+    exactly('(') .map { RangeDelim.Open },
+    exactly('[') .map { RangeDelim.Closed },
+)
+
+private val rRangeDelimiter = choice(
+    exactly(')') .map { RangeDelim.Open },
+    exactly(']') .map { RangeDelim.Closed },
+)
+
+val range: P<Pair<Int, Int>> = (
+      pure<Char, _> { l: RangeDelim, from: Int, to: Int, r: RangeDelim ->
+          val lb = if (l == RangeDelim.Open) from else from + 1
+          val ub = if (r == RangeDelim.Open) to else to - 1
+          Pair(lb, ub)
+      }
+      * lRangeDelimiter
+      * (int andSkip exactly(','))
+      * int
+      * rRangeDelimiter
+    )
+
+val input: P<ApoExp.Input> =
+    ( str("?").tok()
+      skipAnd range.optional
+    ) .map { range ->
+        val (from, to) = range.getOrElse { Pair(Int.MIN_VALUE, Int.MAX_VALUE) }
+        ApoExp.Input(from, to)
+    }
+
 /** Expressions at the binding power of parens */
 fun exp3(): P<ApoExp> = choice(
     parenthesized,
+    input,
     unaryMin,
     intLit,
 )
