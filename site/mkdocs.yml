@@ -1,0 +1,40 @@
+site_name: ApoML
+repo_url: https://github.com/ajrouvoet/apoML.kt
+
+nav:
+  - Home: index.md
+  - Developers: dev.md
+  - Course: course.md
+
+theme: 
+  name: material
+  palette:
+    scheme: slate
+    primary: amber
+    accent: blue grey
+  features:
+    - toc.follow
+    - navigation.tabs
+    - navigation.sticky
+    - navigation.expand
+    - navigation.path
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - js/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
