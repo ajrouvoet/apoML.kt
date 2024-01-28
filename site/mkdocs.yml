@@ -4,7 +4,9 @@ site_name: ApoML
 nav:
   - Home: index.md
   - Developers: dev.md
-  - Course: course.md
+  - Course:
+      - Overview: course.md
+      - FP: fp.md
 
 theme: 
   name: material

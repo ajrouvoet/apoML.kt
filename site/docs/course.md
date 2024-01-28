@@ -1,4 +1,4 @@
-# Functional Programming Intensive using ApoML
+# Learn Functional Programming using ApoML
 
 While developing ApoML you may learn a thing or two about
 functional programming.
@@ -14,22 +14,15 @@ syntax to get you started. We assume familiarity with Java.
     - [Kotlin Syntax](https://kotlinlang.org/docs/basic-syntax.html)
     - [Online Playground](https://play.kotlinlang.org/?_ga=2.246942342.320850194.1706268819-1134959140.1706268819)
 
-## Theory: Functionality
+## Theory: Functional Programming
 
 Functional programming is often though of as a style of programming
 with the emphasis on functions. I like to take a different perspective:
-functional programming is about __functionality__. In this theory
-lesson we look at this mathematical property, its application to
-programming, and its impact on software architecture.
+FP is a paradigm prioritizing functional correctness. To accomplish this,
+we want a language and style of programming that makes it easy to reason
+about programs.
 
-A mathematical relation $R \subset I \times O$ is functional whenever 
-$(i_1, o_1) \in R$ and $(i_2, o_2) \in R$ imply $o_1 = o_2$.
-The relations we will consider are the input-output relations of
-programs, where inputs are taken to be parameters, and outputs
-are all observable effects. We are now interested in programs
-where the observable effects are uniquely determined by the parameters.
-We do this because we want to set up a paradigm that prioritizes
-functional correctness.
+[FP 101](./fp.md){ .md-button }
 
 ## Theory: Architecture of a Programming Language Implementation
 
@@ -60,6 +53,8 @@ flowchart LR
 We consider how this architecture applies not just to
 language implementations, but to many design problems.
 
+[PL 101](./pl.md){ .md-button }
+
 The hands-on lessons each look at one of the components of the
 language implementation in the diagram above. You can choose
 to do any or all of the hands-on lessons independently.
@@ -77,7 +72,7 @@ things look like 'turtles all the way down': on our way to
 implementing a domain-specific language ApoML, we define
 a domain-specific language for defining parsers...
 
-## Hands-on: Parsing using Parse Combinators
+## Hands-on: Parsing ApoML
 
 In this hands-on lesson, we use the parser framework to define
 the parser for ApoML.
@@ -101,3 +96,10 @@ not performing effects, but about not performing those effects
 
 If you feel like it, there are many exciting extensions to
 be designed and implemented for ApoML.
+
+- Adding new language constructs:
+      * Booleans,
+      * Functions,
+      * Debugger.
+- Adding a compiler.
+- Compiling the interpreter to WASM and making an interpreter for the website.
