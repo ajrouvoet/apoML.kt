@@ -5,7 +5,7 @@ In the previous lesson we mapped a grammar of lists to their inductive definitio
 
 !!! question
     Now do the same for the grammar of ApoML.
-    See `apoml/syntax.kt`.
+    Git checkout the `course/day-1` branch and see `apoml/syntax.kt`.
 
 !!! hint
     After defining the syntax, you may open `pretty.kt` and uncomment the pretty printer.

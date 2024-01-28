@@ -39,15 +39,12 @@ pattern with its own merits.
 ```mermaid
 flowchart LR
     raw["economy.apo"]
-    parser(["Parser"])
     ast["AST"]
-    eval(["interpreter"])
     value["value"]
-    
-    raw --> parser
-    parser --> ast
-    ast --> eval
-    eval --> value
+
+    raw -->|parse| ast
+    ast -->|pretty print| raw
+    ast -->|eval| value
 ```
 
 We consider how this architecture applies not just to
@@ -67,12 +64,12 @@ a functional architecture for defining parsers. Characteristic
 of functional architecture is the layering of abstractions, and
 the emphasis on composition.
 
+[Parser Combinators](./parsers.md){ .md-button }
+
 If you look closely at what we are doing, then you will see that
 things look like 'turtles all the way down': on our way to
 implementing a domain-specific language ApoML, we define
 a domain-specific language for defining parsers...
-
-[Parser Combinators](./parsers.md){ .md-button }
 
 ## Hands-on: Parsing ApoML
 

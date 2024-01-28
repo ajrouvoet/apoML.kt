@@ -6,7 +6,11 @@ nav:
   - Developers: dev.md
   - Course:
       - Overview: course.md
-      - FP: fp.md
+      - Lectures:
+        - FP: fp.md
+        - PL: pl.md
+        - Parsec: parsers.md
+        - Parsing ApoML: parsing-apoml.md
 
 theme: 
   name: material

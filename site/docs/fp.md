@@ -42,26 +42,16 @@ val ys: List<Int> = xs.plus(11)
 The absence of side effects also serves this purpose.
 
 ```kotlin
-import java.io.IOException
 import java.nio.file.Path
-import kotlin.io.path.bufferedWriter
+import kotlin.io.path.readText
 
-fun withEffects(path: Path): Boolean =
-    try {
-        path.bufferedWriter().use { w ->
-            w.write("Hello side effect")
-        }
-        true
-    } catch (e: IOException) {
-        false
-    }
+fun readFile(path: Path): String = path.readText()
 
-val ok = withEffects(Path.of("/tmp/myeffect"))
-
-// The above is not an equation in the same sense as the xs equation in the
-// previous program. Substituting the rhs for the name may definitely
-// break functional correctness.
+val contents = readFile(Path.of("/tmp/myeffect"))
 ```
+
+The above equation for `contents` is not an equation in the same sense as the xs equation in the
+previous program: it holds only temporarily.
 
 An effect is something for which is explicitly matters whether we do it 
 once or twice. Hence, functional programmers feel that we have to take 
@@ -70,23 +60,24 @@ FP language, like Haskell, this means that we cannot write equations
 where the lhs is a value and the rhs is an effectful program that computes it.
 
 ```haskell
-withEffects :: FilePath -> IO Bool
-withEffects p =
-    catch (do
-      writeFile p "Hello effect"
-      True
-    ) (\ err -> False)
+-- std lib function
+readFile :: FilePath -> IO String
     
-ok :: Bool
-ok = withEffects "/tmp/myeffect"
--- This won't compile, because withEffects returns an `IO Bool`
--- which is not a value of type Bool, but an effectful program that computes a bool.
--- And those should not be confused.
+contents :: String
+contents = readFile "/tmp/myeffect"
 ```
+
+This won't compile, because withEffects returns an `IO Bool`
+which is not a value of type Bool, but an effectful program that computes a bool.
+And those should not be confused.
 
 This principal that equality is a lovely thing and should mean that things are
 mathematically equal for now and forever is the value that is at the heart of FP.
-All the other things are just the consequences of maintaining this value.
+If equality not temporary, then we can freely reason along the equations that we read from our screen.
+This makes it decidably easier to relate specifications with their implementation and obtain functional
+correctness. 
+
+All the other things are just the consequences of the desire to maintain this value.
 
 ## About the word 'Functional'
 
@@ -106,7 +97,7 @@ say that the output is uniquely determined by the input. In that sense, the math
 $\sqrt \_$ on integers does _not_ specify a _functional relation_, 
 because we have both $\sqrt(4) = 2$ and $\sqrt(4) = -2$.
 
-We now return to an effectful Kotlin program:
+We now return to our effectful Kotlin program:
 
 ```kotlin
 fun readFile(path: Path): String = path.readText()
