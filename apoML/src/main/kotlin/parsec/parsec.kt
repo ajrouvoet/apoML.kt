@@ -20,8 +20,6 @@ fun interface Parsec<C, out T> {
 // But as we move up the abstraction levels, this will quickly disappear
 // and we will only interact with the api of lower abstraction levels.
 
-// Layer 1: leaf primitives
-
 /**
  * A parser that immediately succeeds with parse result [v]
  * without consuming any input.
@@ -95,17 +93,6 @@ fun <C> readn(n: Int): Parsec<C, List<C>> = Parsec { s ->
     }
 }
 
-// Layer 2: derived leafs
-// These construct parsers using the primitives
-
-fun <C> exactly(tk: C): Parsec<C, C> = match({ it == tk }) { "Expected $tk, got $it" }
-
-fun <C> exactly(tks: List<C>): Parsec<C, List<C>> = readn<C>(tks.size)
-    .mapError { "Expected $tks, but stream ended prematurely."}
-    .filter({ it == tks }) { "Expected $tks, but got $it" }
-
-// Layer 3: primitives that construct parsers from other parsers
-
 /**
  * Functorial action
  */
@@ -113,6 +100,13 @@ fun <C, T, S> Parsec<C,T>.map(f: (T) -> S) = Parsec { s ->
     when (val res = this@map.run(s)) {
         is Result.Err -> res
         is Result.Ok  -> Result.Ok(res.remainder, f(res.value))
+    }
+}
+
+fun <C, T> Parsec<C, T>.mapError(onErr: (String) -> String): Parsec<C, T> = Parsec { s ->
+    when (val res = this@mapError.run(s)) {
+        is Result.Err -> res.copy(message = onErr(res.message))
+        is Result.Ok  -> res
     }
 }
 
@@ -126,7 +120,7 @@ fun <C, T> Parsec<C,T>.filter(pred: (T) -> Boolean, onErr: (T) -> String) = Pars
 }
 
 /**
- * Monadic action
+ * Monadic action: value-dependent sequencing of parsers.
  */
 fun <C, T, S> Parsec<C,T>.flatMap(k: (T) -> Parsec<C, S>): Parsec<C, S> = Parsec { s ->
     when (val res = this@flatMap.run(s)) {
@@ -201,7 +195,14 @@ fun <C,T> Parsec<C,T>.many() = object: Parsec<C, List<T>> {
     override fun run(s: Stream<C>): Result<C, List<T>> = run(s, listOf())
 }
 
-// Level 4
+// Useful combinators that are defined compositionally
+// ---------------------------------------------------
+
+fun <C> exactly(tk: C): Parsec<C, C> = match({ it == tk }) { "Expected $tk, got $it" }
+
+fun <C> exactly(tks: List<C>): Parsec<C, List<C>> = readn<C>(tks.size)
+    .mapError { "Expected $tks, but stream ended prematurely."}
+    .filter({ it == tks }) { "Expected $tks, but got $it" }
 
 /**
  * Parser that sequences [this] [and] [that] but only keep the result of [that].
@@ -213,18 +214,11 @@ infix fun <C,S,T> Parsec<C,S>.skipAnd(that: Parsec<C, T>): Parsec<C, T> =
 /**
  * Parser that sequences [this] [and] [that] but only keep the result of [this].
  */
-infix fun <C,S,T> Parsec<C,S>.andSkip(that: Parsec<C, T>): Parsec<C, S> =
+infix fun <C,S,T> Parsec<C,S>.andSkip(that: Parsec<C, T>) =
     (this and that)
         .map { it.first }
 
 fun <C,T> Parsec<C, T>.plus() = this and this.many()
-
-fun <C,T,S> Parsec<C, T>.manyTill(end: Parsec<C, S>): Parsec<C, List<T>> =
-    end.map { listOf<T>() } or this.flatMap { x ->
-        this.manyTill(end).map { xs ->
-            x.prependTo(xs)
-        }
-    }
 
 fun <C,T> choice(parsers: List<Parsec<C, T>>, onErr: String = "No match"): Parsec<C, T> =
     if (parsers.isEmpty()) fail(onErr) else {
@@ -234,12 +228,6 @@ fun <C,T> choice(parsers: List<Parsec<C, T>>, onErr: String = "No match"): Parse
 fun <C,T> choice(vararg parsers: Parsec<C, T>, onErr: String = "No match"): Parsec<C, T> =
     choice(parsers.toList(), onErr)
 
-val <C,T> Parsec<C, T>.optional get() = this.flatMap { t -> pure(t.some()) } or pure(none())
-
-fun <C, T> Parsec<C, T>.mapError(onErr: (String) -> String): Parsec<C, T> = Parsec { s ->
-    when (val res = this@mapError.run(s)) {
-        is Result.Err -> res.copy(message = onErr(res.message))
-        is Result.Ok  -> res
-    }
-}
+val <C,T> Parsec<C, T>.optional get() =
+    this.map { t -> t.some() } or pure(none())
 
