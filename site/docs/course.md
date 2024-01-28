@@ -72,10 +72,14 @@ things look like 'turtles all the way down': on our way to
 implementing a domain-specific language ApoML, we define
 a domain-specific language for defining parsers...
 
+[Parser Combinators](./parsers.md){ .md-button }
+
 ## Hands-on: Parsing ApoML
 
 In this hands-on lesson, we use the parser framework to define
 the parser for ApoML.
+
+[Parsing ApoML with Combinators](./parsing-apoml.md){.md-button}
 
 ## Hands-on: Abstracting over Effects
 
