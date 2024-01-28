@@ -1,12 +1,5 @@
 # Developing ApoML
 
-There are two ways to develop ApoML:
-
-1. locally
-2. in the supplied virtual machine.
-
-## Locally building and running ApoML
-
 The Gradle wrapper script can do most of the work of
 setting up your development environment.
 
@@ -25,19 +18,4 @@ which may be confusing. The following works better:
 ```console
 $ ./gradlew install
 $ ./apoML/build/install/bin/apoml ./examples/double.apo
-```
-
-## Using the supplied VM
-
-The local methods of developing ApoML requires a compatible
-system environment. A Linux VM is available that has everything
-you need prepared.
-
-Start the Qemu VM and login with `apo` and password `greekyoghurt`.
-Start a terminal (Konsole) and clone and run the project with:
-
-```console
-git clone $src apoML
-cd apoML
-gradle run
 ```
