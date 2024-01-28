@@ -31,4 +31,13 @@ $ ./apoML/build/install/bin/apoml ./examples/double.apo
 
 The local methods of developing ApoML requires a compatible
 system environment. A Linux VM is available that has everything
-you need, including the prepared repository.
+you need prepared.
+
+Start the Qemu VM and login with `apo` and password `greekyoghurt`.
+Start a terminal (Konsole) and clone and run the project with:
+
+```console
+git clone $src apoML
+cd apoML
+gradle run
+```

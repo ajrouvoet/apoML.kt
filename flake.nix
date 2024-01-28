@@ -17,13 +17,27 @@
 
     # for the website
     site = import ./site/default.nix pkgs;
+    apoml-src = ./.;
 
     # for the VM
     nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
-            (import ./vm.nix { inherit site; })
+            (import ./vm.nix { inherit site apoml-src;  })
         ];
+    };
+
+    vms.qemu = nixosConfigurations.vm.config.system.build.vm;
+    vms.vbox = pkgs.stdenv.mkDerivation {
+        name = "apoml-dev-vbox-latest";
+        buildInputs = with pkgs; [ qemu ];
+        src = vms.qemu;
+        buildPhase = ''
+            qemu-img convert -O vdi $src apoml-dev.vdi
+        '';
+        installPhase = ''
+            cp apoml-dev.vdi $out
+        '';
     };
   };
 }

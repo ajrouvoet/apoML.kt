@@ -1,4 +1,4 @@
-# ApoML: Calculated and Meticulate
+# ApoML
 
 An industrial-strength calculator language
 combining the flexibility of greek yoghurt

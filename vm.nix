@@ -1,4 +1,4 @@
-{ site }:
+{ site, apoml-src }:
 { config, lib, pkgs, ... }: {
     users.users = {
         # of course apoML is developed by Apo
@@ -20,7 +20,14 @@
         git
         ripgrep
         jetbrains.idea-community
+        jdk17
+        gradle
     ];
+
+    environment.variables = {
+        JDK17 = pkgs.jdk17;
+        src   = apoml-src;
+    };
 
     services.xserver = {
         enable = true;
