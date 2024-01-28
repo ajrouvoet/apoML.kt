@@ -1,0 +1,5 @@
+let eu_interest  = ?(0,100) in
+let loan         = ? in
+let years        = ? in
+
+loan * (100 + eu_interest) ^ years
