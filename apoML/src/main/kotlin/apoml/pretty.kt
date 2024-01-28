@@ -1,10 +1,13 @@
 package apoml
 
+// This file defines a pretty-printer for the AST
+// Once you defined your AST, you can uncomment these.
+
 enum class Assoc {
     LR, RL, None
 }
 
-val ApoExp.associativity get() = when (this) {
+val ApoExp.associativity get(): Assoc = TODO() /* when (this) {
     is ApoExp.Input -> Assoc.None
     is ApoExp.IntLit -> Assoc.None
     is ApoExp.LetIn -> Assoc.None
@@ -12,9 +15,9 @@ val ApoExp.associativity get() = when (this) {
     is ApoExp.Plus -> Assoc.LR
     is ApoExp.UnaryMin -> Assoc.RL
     is ApoExp.Var -> Assoc.None
-}
+} */
 
-val ApoExp.prec get() = when (this) {
+val ApoExp.prec get(): Int = TODO() /* when (this) {
     is ApoExp.LetIn  -> 1
 
     is ApoExp.Plus   -> 2
@@ -25,9 +28,9 @@ val ApoExp.prec get() = when (this) {
     is ApoExp.IntLit -> 4
     is ApoExp.UnaryMin -> 4
     is ApoExp.Var    -> 4
-}
+}*/
 
-fun ApoExp.pretty(level: Int = 0): String {
+fun ApoExp.pretty(level: Int = 0): String = TODO() /* {
     val (precL, precR) =
         if (this.associativity == Assoc.LR) {
             Pair(this.prec, this.prec + 1)
@@ -46,4 +49,4 @@ fun ApoExp.pretty(level: Int = 0): String {
     }
 
     return if (prec < level) "($e)" else e
-}
+}*/

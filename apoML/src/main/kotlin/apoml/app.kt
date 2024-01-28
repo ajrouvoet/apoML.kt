@@ -8,19 +8,6 @@ import kotlin.io.path.bufferedReader
 import kotlin.io.path.readText
 import kotlin.system.exitProcess
 
-class CLIInputProvider: InputProvider<Int> {
-    private val scanner = Scanner(System.`in`)
-
-    override fun input(from: Int, to: Int): Int {
-        println("> Enter a number between $from and $to")
-        print("< ")
-
-        // TODO error handling?
-        return scanner.nextInt(10)
-    }
-
-}
-
 fun main(args: Array<String>) {
     // check arguments
     if (args.size < 1) {
@@ -43,16 +30,5 @@ fun main(args: Array<String>) {
         is Result.Ok -> res.value
     }
 
-    // interpret it!
-    val result = Concrete(CLIInputProvider()).run {
-        eval(ast)
-    }
-
-    // inline the let expressions to get a simple symbolic expression
-    val inlined = initial.run {
-        eval(ast)
-    }
-
-    println("-".repeat(80))
-    println("${inlined.pretty()} = $result")
+    println(ast)
 }

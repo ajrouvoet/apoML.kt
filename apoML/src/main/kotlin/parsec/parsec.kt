@@ -24,21 +24,19 @@ fun interface Parsec<C, out T> {
  * A parser that immediately succeeds with parse result [v]
  * without consuming any input.
  */
-fun <C, T> pure(v: T) = Parsec<C, T> { s ->
-    Result.Ok(s, v)
-}
+fun <C, T> pure(v: T): Parsec<C, T> = TODO()
 
 /**
  * A parser that always fails with [msg] as error message,
  * without consuming any input.
  */
-fun <C, T> fail(msg: String) = Parsec<C, T> { s ->
-    Result.Err(s, msg)
-}
+fun <C, T> fail(msg: String): Parsec<C, T> = TODO()
 
 /**
- * This is a utility to enable recursive parser definitions.
- * Without smashing the stack immediately.
+ * This is a utility to define recursive parser,
+ * without overflowing the stack immediately.
+ *
+ * You may ignore it for now.
  */
 fun <C, T> rec(factory: () -> Parsec<C, T>) = Parsec<C, T> { s ->
     factory().run(s)
@@ -49,60 +47,29 @@ fun <C, T> rec(factory: () -> Parsec<C, T>) = Parsec<C, T> { s ->
  * that element satisfies the predicate [pred].
  * If it doesn't, then an error is produced by calling [onErr] on the consumed element.
  */
-fun <C> match(pred: (C) -> Boolean, onErr: (C) -> String): Parsec<C, C> = Parsec { s ->
-    when (val res = s.next()) {
-        None -> Result.Err(s, "Unexpected end of stream")
-        is Some -> {
-            val (c, ns) = res.value
-            if (pred(c)) {
-                Result.Ok(ns, c)
-            } else {
-                Result.Err(ns, onErr(c))
-            }
-        }
-    }
-}
+fun <C> match(pred: (C) -> Boolean, onErr: (C) -> String): Parsec<C, C> = TODO()
 
 /**
  * Specialization of [match] that matches the end of the stream.
  */
-fun <C> eos(): Parsec<C, Unit> = Parsec { s ->
-    if (s.next().isNone()) Result.Ok(s, Unit)
-    else Result.Err(s, "Expected end of stream, still have: $s")
-}
+fun <C> eos(): Parsec<C, Unit> = TODO()
 
 /**
  * Tries to read [n] input elements and succeeds iff that works out.
  */
-fun <C> readn(n: Int): Parsec<C, List<C>> = Parsec { s ->
-    try {
-        // nothing wrong with some imperative code
-        // within a strong functional abstraction if that is more speedy...
-        var stream = s
-        val result = mutableListOf<C>()
-
-        repeat(n) {
-            val (c, nxt) = stream.next().getOrElse { throw UnexpectedEOS }
-            stream = nxt
-            result.add(c)
-        }
-
-        Result.Ok(stream, result)
-    } catch (e: UnexpectedEOS) {
-        Result.Err(s, "Expected $n more inputs, but stream ends before that.")
-    }
-}
+fun <C> readn(n: Int): Parsec<C, List<C>> =
+    // nothing wrong with some imperative code
+    // within a strong functional abstraction if that is more speedy...
+    TODO()
 
 /**
  * Functorial action
  */
-fun <C, T, S> Parsec<C,T>.map(f: (T) -> S) = Parsec { s ->
-    when (val res = this@map.run(s)) {
-        is Result.Err -> res
-        is Result.Ok  -> Result.Ok(res.remainder, f(res.value))
-    }
-}
+fun <C, T, S> Parsec<C, T>.map(f: (T) -> S): Parsec<C, S> = TODO()
 
+/**
+ * Utility to give a more precise error message.
+ */
 fun <C, T> Parsec<C, T>.mapError(onErr: (String) -> String): Parsec<C, T> = Parsec { s ->
     when (val res = this@mapError.run(s)) {
         is Result.Err -> res.copy(message = onErr(res.message))
@@ -110,90 +77,39 @@ fun <C, T> Parsec<C, T>.mapError(onErr: (String) -> String): Parsec<C, T> = Pars
     }
 }
 
-fun <C, T> Parsec<C,T>.filter(pred: (T) -> Boolean, onErr: (T) -> String) = Parsec { s ->
-    when (val res = this@filter.run(s)) {
-        is Result.Err -> res
-        is Result.Ok  ->
-            if (pred(res.value)) res
-            else Result.Err(res.remainder, onErr(res.value))
-    }
-}
+/**
+ * Filter the result of [this] based on [pred].
+ * If [pred] rejects a result, we produce the error [onErr].
+ */
+fun <C, T> Parsec<C,T>.filter(pred: (T) -> Boolean, onErr: (T) -> String): Parsec<C, T> = TODO()
 
 /**
  * Monadic action: value-dependent sequencing of parsers.
  */
-fun <C, T, S> Parsec<C,T>.flatMap(k: (T) -> Parsec<C, S>): Parsec<C, S> = Parsec { s ->
-    when (val res = this@flatMap.run(s)) {
-        is Result.Err -> res
-        is Result.Ok  -> k(res.value).run(res.remainder)
-    }
-}
+fun <C, T, S> Parsec<C,T>.flatMap(k: (T) -> Parsec<C, S>): Parsec<C, S> = TODO()
 
 /**
  * Parser that sequences [this] and [that].
  * If either fails, the produced parser fails.
  * If both succeed, then both their results are given.
  */
-infix fun <C,S,T> Parsec<C,S>.and(that: Parsec<C, T>): Parsec<C, Pair<S,T>> = Parsec { str ->
-    this.run(str).flatMap { s, rem ->
-        that.run(rem).map { t ->
-            Pair(s, t)
-        }
-    }
-}
+infix fun <C,S,T> Parsec<C,S>.and(that: Parsec<C, T>): Parsec<C, Pair<S,T>> = TODO()
 
 /**
  * Parse [p] but rewind the consumed input when [p] fails.
  */
-fun <C,T> tryOrRewind(p: Parsec<C, T>) = Parsec { s ->
-    when (val res = p.run(s)) {
-        is Result.Ok -> res
-        is Result.Err -> Result.Err(s, res.message) /* rewind on failure */
-    }
-}
+fun <C,T> tryOrRewind(p: Parsec<C, T>): Parsec<C, T> = TODO()
 
 /**
  * Parser that sequences [this] or [that] instead if [this] fails.
  */
-infix fun <C,T> Parsec<C,T>.or(that: Parsec<C, T>) = Parsec { s ->
-    when (val res = tryOrRewind(this).run(s)) {
-        is Result.Err -> that.run(s)
-        is Result.Ok  -> res
-    }
-}
-
-/**
- * Parse [p] but don't consume any input.
- * If [p] errors, the error is propagated and input is consumed.
- */
-fun <C,T> lookahead(p: Parsec<C, T>) = Parsec { s ->
-    when (val res = p.run(s)) {
-        is Result.Ok -> Result.Ok(s, res.value) /* rewind on success */
-        is Result.Err -> res
-    }
-}
-
+infix fun <C,T> Parsec<C,T>.or(that: Parsec<C, T>): Parsec<C ,T> = TODO()
 
 /**
  * Parse [this] as many times as possible, until it fails.
  * The input consumed in the failing attempt will be rewinded.
  */
-fun <C,T> Parsec<C,T>.many() = object: Parsec<C, List<T>> {
-    val p: Parsec<C, T> = this@many
-
-    fun run(s: Stream<C>, accumulator: List<T> = listOf()): Result.Ok<C, List<T>> = tryOrRewind(p)
-        .run(s)
-        .let {
-            when (it) {
-                is Result.Err -> Result.Ok(it.remainder, accumulator)
-                is Result.Ok  -> run(it.remainder, accumulator + listOf(it.value))
-            }
-        }
-
-    // We have seen an imperative loop in [readn].
-    // Here we see the functional variant, using recursion and an accumulator.
-    override fun run(s: Stream<C>): Result<C, List<T>> = run(s, listOf())
-}
+fun <C,T> Parsec<C,T>.many(): Parsec<C, List<T>> = TODO()
 
 // Useful combinators that are defined compositionally
 // ---------------------------------------------------
@@ -207,27 +123,27 @@ fun <C> exactly(tks: List<C>): Parsec<C, List<C>> = readn<C>(tks.size)
 /**
  * Parser that sequences [this] [and] [that] but only keep the result of [that].
  */
-infix fun <C,S,T> Parsec<C,S>.skipAnd(that: Parsec<C, T>): Parsec<C, T> =
-    (this and that)
-        .map { it.second }
+infix fun <C,S,T> Parsec<C,S>.skipAnd(that: Parsec<C, T>): Parsec<C, T> = TODO()
 
 /**
  * Parser that sequences [this] [and] [that] but only keep the result of [this].
  */
-infix fun <C,S,T> Parsec<C,S>.andSkip(that: Parsec<C, T>) =
-    (this and that)
-        .map { it.first }
+infix fun <C,S,T> Parsec<C,S>.andSkip(that: Parsec<C, T>): Parsec<C, S> = TODO()
 
 fun <C,T> Parsec<C, T>.plus() = this and this.many()
 
-fun <C,T> choice(parsers: List<Parsec<C, T>>, onErr: String = "No match"): Parsec<C, T> =
-    if (parsers.isEmpty()) fail(onErr) else {
-        parsers.first() or choice(parsers.drop(1))
-    }
+
+/**
+ * Utility to turn the non-empty list (a pair of an element and a list) into a list.
+ * Useful to simplify the output of [plus].
+ */
+fun <T> Pair<T, List<T>>.cons(): List<T> = first.prependTo(second)
+
+fun <C,T> choice(parsers: List<Parsec<C, T>>, onErr: String = "No match"): Parsec<C, T> = TODO()
 
 fun <C,T> choice(vararg parsers: Parsec<C, T>, onErr: String = "No match"): Parsec<C, T> =
     choice(parsers.toList(), onErr)
 
-val <C,T> Parsec<C, T>.optional get() =
+val <C,T> Parsec<C, T>.optional get(): Parsec<C, Option<T>> =
     this.map { t -> t.some() } or pure(none())
 

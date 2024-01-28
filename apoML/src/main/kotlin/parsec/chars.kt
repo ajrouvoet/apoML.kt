@@ -27,3 +27,8 @@ val digit  = satisfy({ it.isDigit() }) { actual -> "Expected letter, got $actual
 fun chr(c: Char) = satisfy({ it == c }) { actual -> "Expected '$c', got $actual"}
 
 fun str(s: String) = exactly(s.toList())
+
+/**
+ * Optional whitespace parser
+ */
+val ws = oneOf(" \t\r\n").many()

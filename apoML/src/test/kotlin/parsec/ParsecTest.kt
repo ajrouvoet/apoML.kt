@@ -59,11 +59,10 @@ class ParsecTest {
 
     @Test
     fun `exactly and exactly `() {
-        val parser = exactly('x') and exactly('y')
+        val parser: Parsec<Char, Pair<Char, Char>> = exactly('x') and exactly('y')
 
         parser.run {
             expectError("x") // too little input
-
             expectParse("xy")
             expectParse("xyz")
         }
@@ -71,11 +70,10 @@ class ParsecTest {
 
     @Test
     fun `exactly andSkip eos `() {
-        val parser = exactly('x') andSkip eos()
+        val parser: Parsec<Char, Char> = exactly('x') andSkip eos()
 
         parser.run {
             expectParse("x") { assertEquals('x', value) }
-
             expectError("") // too little input
             expectError("xy") // too much input
         }
