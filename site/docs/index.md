@@ -7,9 +7,9 @@ in the tradition of ML languages.
 
 ```ocaml
 (* ask for the initial values *)
-val eu_interest  = ?(0,100) (* ask for input n s.t. 0 <= n <= 100 *)
-val loan         = ?
-val years        = ?
+let eu_interest  = ?(0,100) (* ask for input n s.t. 0 <= n <= 100 *) in
+let loan         = ? in
+let years        = ? in
 
 (* compute what we need to pay back to the EU *)
 loan * (100 + eu_interest) ^ years
@@ -29,7 +29,7 @@ $ apo ./economy.apo
 > enter a number
 < 5
 -------------------------------
-400 * (100 + 10) ^ 5 = x
+? * (100 + ?(0,100)) ^ ? = x
 ```
 
 ## Developing ApoML
