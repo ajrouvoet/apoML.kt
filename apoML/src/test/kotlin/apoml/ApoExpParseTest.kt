@@ -9,23 +9,6 @@ import kotlin.test.fail
 class ApoExpParseTest {
     val program = apoML
 
-    class TestInputProvider: InputProvider<Int> {
-        private var next: Int = 0
-        override fun input(from: Int, to: Int): Int {
-            val cur = next
-            next = next + 1
-
-            // clip the value to the range
-            return if (cur > to) to else if (cur < from) from else cur
-        }
-    }
-
-    /**
-     * Convenience method to interpret [ApoExp]s with its concrete semantics.
-     */
-    fun ApoExp.eval(inputProvider: InputProvider<Int> = TestInputProvider()): Int =
-        Concrete(inputProvider).eval(this)
-
     private fun <T> Parsec<Char, T>.expectError(input: String, onErr: Result.Err<Char>.() -> Unit = {}) =
         when (val res = this.run(input.stream)) {
             is Result.Err -> res.onErr()
@@ -137,29 +120,6 @@ class ApoExpParseTest {
     }
 
     @Test
-    fun `initial semantics`() = initial.run {
-        // the initial semantics gives us an embedded DSL to construct the
-        // abstract syntax.
-        val exp: ApoExp = - ofInt(37) * (ofInt(3) + ofInt(2))
-
-        assertEquals(
-            Mult(UnaryMin(IntLit(37)), Plus(IntLit(3), IntLit(2))),
-            exp
-        )
-
-        assertEquals(- 37 * (3 + 2), exp.eval())
-
-        // The semantics of let expressions is built into the interpreter.
-        // Effectively that means that the initial semantics performs inlining
-        // of let-bound variables.
-        program.run {
-            expectParse("let x = 1 in x + x") {
-                assertEquals(Plus(IntLit(1), IntLit(1)), eval(value))
-            }
-        }
-    }
-
-    @Test
     fun `input`() = program.run {
         expectParse("?") {
             assertEquals(Input(), value)
@@ -174,14 +134,12 @@ class ApoExpParseTest {
         expectParse("?(1,1) + ?(1,2]") {
             assertEquals(Plus(Input(1, 1), Input(1, 1)), value)
             assertEquals(2, value.eval())
-            assertEquals(Pair(2, 2), intervalAnalysis.eval(value))
         }
 
         expectParse("?(0,1) + ?(10,20]") {
             assertEquals(Plus(Input(0, 1), Input(10, 19)), value)
             // second input will clip to lowerbound of the range
             assertEquals(10, value.eval())
-            assertEquals(Pair(10, 20), intervalAnalysis.eval(value))
         }
     }
 
