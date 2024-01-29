@@ -17,13 +17,16 @@
 
     # for the website
     site = import ./site/default.nix pkgs;
+    apoml-src = ./.;
 
     # for the VM
     nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
-            (import ./vm.nix { inherit site; })
+            (import ./vm.nix { inherit site apoml-src;  })
         ];
     };
+
+    vms.qemu = nixosConfigurations.vm.config.system.build.vm;
   };
 }

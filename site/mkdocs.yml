@@ -1,10 +1,16 @@
 site_name: ApoML
-# repo_url: https://github.com/ajrouvoet/apoML.kt
+repo_url: https://github.com/ajrouvoet/apoML.kt
 
 nav:
   - Home: index.md
   - Developers: dev.md
-  - Course: course.md
+  - Course:
+      - Overview: course.md
+      - Lectures:
+        - FP: fp.md
+        - PL: pl.md
+        - Parsec: parsers.md
+        - Parsing ApoML: parsing-apoml.md
 
 theme: 
   name: material

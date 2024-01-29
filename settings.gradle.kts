@@ -1,3 +1,3 @@
-rootProject.name = "intensely-functional"
+rootProject.name = "apoML"
 
-include("monads")
+include("apoML")

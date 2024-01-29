@@ -1,5 +1,8 @@
 package apoml
 
+typealias Env<Value> = Map<String, Value>
+typealias C<Value>   = (Env<Value>) -> Value
+
 fun interface InputProvider<Value> {
     fun input(from: Int, to: Int): Value
 }
@@ -21,13 +24,18 @@ interface Semantics<Value>: InputProvider<Value> {
  * Because expressions are defined inductively,
  * we obtain the semantics of expression inductively as well!
  */
-fun <Value> Semantics<Value>.eval(e: ApoExp): Value =
+fun <Value> Semantics<Value>.eval(e: ApoExp, env: Env<Value> = mapOf()): Value =
     when (e) {
         is ApoExp.IntLit   -> ofInt(e.value)
-        is ApoExp.Mult     -> eval(e.left) * eval(e.right)
-        is ApoExp.Plus     -> eval(e.left) + eval(e.right)
-        is ApoExp.UnaryMin -> - eval(e.exp)
+        is ApoExp.Mult     -> (eval(e.left, env) * eval(e.right, env))
+        is ApoExp.Plus     -> (eval(e.left, env) + eval(e.right, env))
+        is ApoExp.UnaryMin -> - eval(e.exp, env)
         is ApoExp.Input    -> input(e.from, e.to)
+        is ApoExp.LetIn    -> {
+            val bound = eval(e.fst, env)
+            eval(e.snd, env.plus(e.name to bound))
+        }
+        is ApoExp.Var -> env[e.name]!! // exception handling?
     }
 
 class Concrete(val inputProvider: InputProvider<Int>)
@@ -71,5 +79,4 @@ object intervalAnalysis: Semantics<Interval> {
     override fun Interval.times(right: Interval): Interval =
         interval(this.first * right.first, this.second * right.second)
     override fun input(from: Int, to: Int): Interval = Pair(from, to)
-
 }
