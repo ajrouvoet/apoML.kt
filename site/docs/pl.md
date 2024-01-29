@@ -46,6 +46,7 @@ expressions e   := x
                 | i 
                 | ? 
                 | ?(i, j) 
+                | - e
                 | e + e 
                 | e * e 
                 | let x = e in e
