@@ -25,6 +25,8 @@ val tokenizer: Parsec<Char, String> = choice(
     token("?"),
     token("("),
     token(")"),
+    token("["),
+    token("]"),
     token("*"),
     token("+"),
     token("-"),

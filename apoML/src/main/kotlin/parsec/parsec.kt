@@ -40,7 +40,7 @@ fun <C, T> fail(msg: String) = Parsec<C, T> { s ->
  * This is a utility to enable recursive parser definitions.
  * Without smashing the stack immediately.
  */
-fun <C, T> rec(factory: () -> Parsec<C, T>) = Parsec<C, T> { s ->
+fun <C, T> rec(factory: () -> Parsec<C, T>) = Parsec { s ->
     factory().run(s)
 }
 

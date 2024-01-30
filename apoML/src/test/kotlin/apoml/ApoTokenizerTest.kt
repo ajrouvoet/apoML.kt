@@ -18,6 +18,9 @@ class ApoTokenizerTest {
     fun `tokenize addition`() {
         val toks = "x+1".stream.tokenize().asSequence().toList()
         assertEquals(listOf("x", "+", "1"), toks)
+
+        val toks2 = "x + 1".stream.tokenize().asSequence().toList()
+        assertEquals(listOf("x", "+", "1"), toks2)
     }
 
     @Test
