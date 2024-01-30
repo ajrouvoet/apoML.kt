@@ -100,7 +100,7 @@ class ApoExpParseTest {
     }
 
     @Test
-    fun `+ and * binding`() = program.run {
+    fun `add and mult binding`() = program.run {
         expectParse("37 * 3 + 2") {
             assertEquals(
                 Plus(Mult(IntLit(37), IntLit(3)), IntLit(2)),
@@ -117,7 +117,7 @@ class ApoExpParseTest {
     }
 
     @Test
-    fun `+ and * binding with parens`() = program.run {
+    fun `add and mult binding with parens`() = program.run {
         expectParse("37 * (3 + 2)") {
             assertEquals(
                 Mult(IntLit(37), Plus(IntLit(3), IntLit(2))),
