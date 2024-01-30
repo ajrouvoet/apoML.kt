@@ -96,4 +96,20 @@ class ParsecTest {
             }
         }
     }
+
+    @Test
+    fun `many times exactly`() {
+	val parser = exactly(listOf('x', 'y'))
+		.map { Unit }
+		.many()
+
+	parser.run {
+	    expectParse("x") { assertEquals(listOf(), value) }
+	    expectParse("xy") { assertEquals(listOf(Unit), value) }
+	    expectParse("xyxyz") { 
+	        assertEquals(listOf(Unit, Unit), value) 
+		assertTrue(remainder.next().isSome())
+	    }
+	}
+    }
 }
