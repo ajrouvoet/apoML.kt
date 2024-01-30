@@ -24,7 +24,7 @@ class ParsecTest {
     fun `pure`() {
         val parser = pure<Char, _>(1)
 
-        parser.run {
+        parser.apply {
             expectParse("xy") {
                 assertEquals(1, value)
             }
@@ -38,7 +38,7 @@ class ParsecTest {
     fun `match`() {
         val parser = match<Char>({ it == '!' }) { "Unexpected: not an exclamation" }
 
-        parser.run {
+        parser.apply {
             expectParse("!")
             expectParse("!.")
             expectError(".!")
@@ -46,10 +46,22 @@ class ParsecTest {
     }
 
     @Test
-    fun `readn`() {
-        val parser = readn<Char>(2)
+    fun `any()`() {
+        val parser = any<Char>()
 
-        parser.run {
+        parser.apply {
+            expectError("") // too little input
+
+            expectParse("xy")  { assertEquals('x', value) }
+            expectParse("xyz") { assertEquals('x', value) }
+        }
+    }
+
+    @Test
+    fun `any(2)`() {
+        val parser = any<Char>(2)
+
+        parser.apply {
             expectError("x") // too little input
 
             expectParse("xy")  { assertEquals(listOf('x', 'y'), value) }
@@ -61,7 +73,7 @@ class ParsecTest {
     fun `exactly and exactly `() {
         val parser = exactly('x') and exactly('y')
 
-        parser.run {
+        parser.apply {
             expectError("x") // too little input
 
             expectParse("xy")
@@ -73,7 +85,7 @@ class ParsecTest {
     fun `exactly andSkip eos `() {
         val parser = exactly('x') andSkip eos()
 
-        parser.run {
+        parser.apply {
             expectParse("x") { assertEquals('x', value) }
 
             expectError("") // too little input
@@ -85,7 +97,7 @@ class ParsecTest {
     fun `tryOrRewind exactly`() {
         val parser = tryOrRewind(exactly('x'))
 
-        parser.run {
+        parser.apply {
             expectParse("x") {
                 assertEquals('x', value)
                 assertTrue(remainder.next().isNone())
@@ -103,7 +115,7 @@ class ParsecTest {
 		.map { Unit }
 		.many()
 
-	parser.run {
+	parser.apply {
 	    expectParse("x") { assertEquals(listOf(), value) }
 	    expectParse("xy") { assertEquals(listOf(Unit), value) }
 	    expectParse("xyxyz") { 

@@ -45,25 +45,6 @@ fun <C, T> rec(factory: () -> Parsec<C, T>) = Parsec<C, T> { s ->
 }
 
 /**
- * A parser that consumes a single input element and succeeds if
- * that element satisfies the predicate [pred].
- * If it doesn't, then an error is produced by calling [onErr] on the consumed element.
- */
-fun <C> match(pred: (C) -> Boolean, onErr: (C) -> String): Parsec<C, C> = Parsec { s ->
-    when (val res = s.next()) {
-        None -> Result.Err(s, "Unexpected end of stream")
-        is Some -> {
-            val (c, ns) = res.value
-            if (pred(c)) {
-                Result.Ok(ns, c)
-            } else {
-                Result.Err(ns, onErr(c))
-            }
-        }
-    }
-}
-
-/**
  * Specialization of [match] that matches the end of the stream.
  */
 fun <C> eos(): Parsec<C, Unit> = Parsec { s ->
@@ -71,25 +52,10 @@ fun <C> eos(): Parsec<C, Unit> = Parsec { s ->
     else Result.Err(s, "Expected end of stream, still have: $s")
 }
 
-/**
- * Tries to read [n] input elements and succeeds iff that works out.
- */
-fun <C> readn(n: Int): Parsec<C, List<C>> = Parsec { s ->
-    try {
-        // nothing wrong with some imperative code
-        // within a strong functional abstraction if that is more speedy...
-        var stream = s
-        val result = mutableListOf<C>()
-
-        repeat(n) {
-            val (c, nxt) = stream.next().getOrElse { throw UnexpectedEOS }
-            stream = nxt
-            result.add(c)
-        }
-
-        Result.Ok(stream, result)
-    } catch (e: UnexpectedEOS) {
-        Result.Err(s, "Expected $n more inputs, but stream ends before that.")
+fun <C> any() = Parsec<C, C> {
+    when (val next = it.next()) {
+        None    -> Result.Err(it, "Expected input, got none.")
+        is Some -> Result.Ok(next.value.second, next.value.first)
     }
 }
 
@@ -110,7 +76,7 @@ fun <C, T> Parsec<C, T>.mapError(onErr: (String) -> String): Parsec<C, T> = Pars
     }
 }
 
-fun <C, T> Parsec<C,T>.filter(pred: (T) -> Boolean, onErr: (T) -> String) = Parsec { s ->
+fun <C, T> Parsec<C,T>.filter(onErr: (T) -> String, pred: (T) -> Boolean) = Parsec { s ->
     when (val res = this@filter.run(s)) {
         is Result.Err -> res
         is Result.Ok  ->
@@ -126,19 +92,6 @@ fun <C, T, S> Parsec<C,T>.flatMap(k: (T) -> Parsec<C, S>): Parsec<C, S> = Parsec
     when (val res = this@flatMap.run(s)) {
         is Result.Err -> res
         is Result.Ok  -> k(res.value).run(res.remainder)
-    }
-}
-
-/**
- * Parser that sequences [this] and [that].
- * If either fails, the produced parser fails.
- * If both succeed, then both their results are given.
- */
-infix fun <C,S,T> Parsec<C,S>.and(that: Parsec<C, T>): Parsec<C, Pair<S,T>> = Parsec { str ->
-    this.run(str).flatMap { s, rem ->
-        that.run(rem).map { t ->
-            Pair(s, t)
-        }
     }
 }
 
@@ -173,36 +126,50 @@ fun <C,T> lookahead(p: Parsec<C, T>) = Parsec { s ->
     }
 }
 
+// Useful combinators that are defined compositionally
+// ---------------------------------------------------
+
+/**
+ * A parser that consumes a single input element and succeeds if
+ * that element satisfies the predicate [pred].
+ * If it doesn't, then an error is produced by calling [onErr] on the consumed element.
+ */
+fun <C> match(pred: (C) -> Boolean, onErr: (C) -> String = {"Unexpected input."}): Parsec<C, C> =
+    any<C>().filter(onErr, pred)
+
+/**
+ * Parser that sequences [this] and [that].
+ * If either fails, the produced parser fails.
+ * If both succeed, then both their results are given.
+ */
+infix fun <C,S,T> Parsec<C,S>.and(that: Parsec<C, T>): Parsec<C, Pair<S,T>> = Parsec { str ->
+    this.run(str).flatMap { s, rem ->
+        that.run(rem).map { t ->
+            Pair(s, t)
+        }
+    }
+}
 
 /**
  * Parse [this] as many times as possible, until it fails.
  * The input consumed in the failing attempt will be rewinded.
  */
-fun <C,T> Parsec<C,T>.many() = object: Parsec<C, List<T>> {
-    val p: Parsec<C, T> = this@many
-
-    fun run(s: Stream<C>, accumulator: List<T> = listOf()): Result.Ok<C, List<T>> = tryOrRewind(p)
-        .run(s)
-        .let {
-            when (it) {
-                is Result.Err -> Result.Ok(it.remainder, accumulator)
-                is Result.Ok  -> run(it.remainder, accumulator + listOf(it.value))
-            }
-        }
-
-    // We have seen an imperative loop in [readn].
-    // Here we see the functional variant, using recursion and an accumulator.
-    override fun run(s: Stream<C>): Result<C, List<T>> = run(s, listOf())
+fun <C,T> Parsec<C,T>.many(prepend: List<T> = listOf()): Parsec<C, List<T>> = this.optional.flatMap {
+    when (val res = it) {
+        is None -> pure(prepend)
+        is Some -> many(prepend + res.value)
+    }
 }
 
-// Useful combinators that are defined compositionally
-// ---------------------------------------------------
+fun <C,T> Parsec<C,T>.repeat(n: Int, prepend: List<T> = listOf()): Parsec<C, List<T>> =
+    if (n == 0) pure(prepend)
+    else this.flatMap { t -> this.repeat(n - 1, prepend + t) }
 
 fun <C> exactly(tk: C): Parsec<C, C> = match({ it == tk }) { "Expected $tk, got $it" }
 
-fun <C> exactly(tks: List<C>): Parsec<C, List<C>> = readn<C>(tks.size)
+fun <C> exactly(tks: List<C>): Parsec<C, List<C>> = any<C>(tks.size)
     .mapError { "Expected $tks, but stream ended prematurely."}
-    .filter({ it == tks }) { "Expected $tks, but got $it" }
+    .filter({ "Expected $tks, but got $it" }) { it == tks }
 
 /**
  * Parser that sequences [this] [and] [that] but only keep the result of [that].
@@ -218,7 +185,10 @@ infix fun <C,S,T> Parsec<C,S>.andSkip(that: Parsec<C, T>) =
     (this and that)
         .map { it.first }
 
-fun <C,T> Parsec<C, T>.plus() = this and this.many()
+data class NonEmptyList<A>(val first: A, val tail: List<A>): List<A> by (first.prependTo(tail))
+
+fun <C,T> Parsec<C, T>.plus() = (this and this.many())
+    .map { (hd, tl) -> NonEmptyList(hd, tl) }
 
 fun <C,T> choice(parsers: List<Parsec<C, T>>, onErr: String = "No match"): Parsec<C, T> =
     if (parsers.isEmpty()) fail(onErr) else {
@@ -231,3 +201,10 @@ fun <C,T> choice(vararg parsers: Parsec<C, T>, onErr: String = "No match"): Pars
 val <C,T> Parsec<C, T>.optional get() =
     this.map { t -> t.some() } or pure(none())
 
+/**
+ * Tries to read [n] input elements and succeeds iff that works out.
+ */
+fun <C> any(n: Int): Parsec<C, List<C>> = any<C>().repeat(n)
+
+val digit: Parsec<Char, Char> = match({ it.isDigit() }) { "Expected 0-9 got '$it'."}
+val letter: Parsec<Char, Char> = match({ it.isLetter() }) { "Expected letter got '$it'."}

@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
     val content = path.readText()
 
     // parse this thing
-    val ast = when (val res = apoML.run(content.stream)) {
+    val ast = when (val res = apoML.run(content.stream.tokenize())) {
         is Result.Err -> {
             println("Invalid ApoML program:")
             println(res.message.prependIndent("\t"))
